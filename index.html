@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian Law — Intake, never missed</title>
+<style>
+  :root{--ink:#0f172a;--slate:#475569;--gold:#b45309;--bg:#f8fafc;--card:#fff}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Georgia,'Times New Roman',serif}
+  body{background:var(--bg);color:var(--ink)}
+  nav{display:flex;justify-content:space-between;align-items:center;padding:20px 6vw;background:#0f172a;color:#fff}
+  nav .logo{font-size:20px;letter-spacing:2px}
+  nav span{font-size:14px;color:#94a3b8;font-family:Helvetica,Arial,sans-serif}
+  header{padding:9vh 6vw 7vh;max-width:900px}
+  h1{font-size:clamp(32px,5vw,54px);line-height:1.15}
+  header p{margin-top:20px;font-size:19px;color:var(--slate);max-width:640px;font-family:Helvetica,Arial,sans-serif;line-height:1.6}
+  .cta{display:inline-block;margin-top:30px;padding:14px 30px;background:var(--gold);color:#fff;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:16px;border-radius:6px}
+  section.facts{display:flex;gap:40px;flex-wrap:wrap;padding:40px 6vw;border-top:1px solid #e2e8f0}
+  .fact b{display:block;font-size:30px}
+  .fact span{font-size:14px;color:var(--slate);font-family:Helvetica,Arial,sans-serif}
+  footer{padding:30px 6vw;font-size:13px;color:#94a3b8;font-family:Helvetica,Arial,sans-serif;border-top:1px solid #e2e8f0}
+  /* widget */
+  #wbtn{position:fixed;bottom:22px;right:22px;width:62px;height:62px;border-radius:50%;background:var(--gold);color:#fff;font-size:26px;border:0;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.25);font-family:Helvetica,Arial,sans-serif}
+  #wbox{position:fixed;bottom:96px;right:22px;width:min(360px,calc(100vw - 32px));height:min(520px,72vh);background:var(--card);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.3);display:none;flex-direction:column;overflow:hidden}
+  #wbox.open{display:flex}
+  .whead{background:#0f172a;color:#fff;padding:14px 16px}
+  .whead b{font-size:15px}
+  .whead div{font-size:12px;color:#94a3b8;font-family:Helvetica,Arial,sans-serif}
+  #wlog{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f1f5f9}
+  .msg{max-width:82%;padding:10px 13px;border-radius:12px;font-size:14px;line-height:1.45;font-family:Helvetica,Arial,sans-serif;white-space:pre-wrap}
+  .bot{background:#fff;align-self:flex-start;border:1px solid #e2e8f0}
+  .you{background:#0f172a;color:#fff;align-self:flex-end}
+  .chip{display:inline-block;margin:3px 4px 0 0;padding:7px 12px;background:#fff;border:1px solid #cbd5e1;border-radius:999px;font-size:13px;cursor:pointer;font-family:Helvetica,Arial,sans-serif}
+  .chip:hover{border-color:var(--gold)}
+  .wfoot{display:flex;gap:8px;padding:10px;border-top:1px solid #e2e8f0;background:#fff}
+  #win{flex:1;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;font-family:Helvetica,Arial,sans-serif}
+  #wsend{padding:10px 16px;background:#0f172a;color:#fff;border:0;border-radius:8px;cursor:pointer;font-family:Helvetica,Arial,sans-serif}
+</style>
+</head>
+<body>
+<nav><div class="logo">MERIDIAN LAW</div><span>Demo: AI intake assistant</span></nav>
+<header>
+  <h1>Every caller is a case.<br>Even the one at 11 p.m.</h1>
+  <p>When a potential client reaches out at night or on a weekend, our AI intake assistant answers in seconds: it learns what happened, how urgent it is, and how to reach them, then hands your team a qualified lead by morning. Try it yourself, bottom right.</p>
+  <a class="cta" href="#" onclick="document.getElementById('wbtn').click();return false;">Start the demo chat</a>
+</header>
+<section class="facts">
+  <div class="fact"><b>24/7</b><span>answers, holidays included</span></div>
+  <div class="fact"><b>&lt;10s</b><span>from first ping to qualified lead</span></div>
+  <div class="fact"><b>0</b><span>leads lost to voicemail</span></div>
+</section>
+<footer>Meridian Law Group is a fictional firm used for this product demo. The intake assistant is the product being demonstrated.</footer>
+
+<button id="wbtn" aria-label="Open chat">💬</button>
+<div id="wbox">
+  <div class="whead"><b>Ava · Intake Assistant</b><div>Meridian Law Group · online</div></div>
+  <div id="wlog"></div>
+  <div class="wfoot"><input id="win" placeholder="Type your reply…" onkeydown="if(event.key==='Enter')send()"><button id="wsend" onclick="send()">Send</button></div>
+</div>
+<script>
+const FIRM="Meridian Law Group";
+const STEPS=[
+ {ask:"What brings you in today?",chips:["Injury claim","Family law","Business dispute","Something else"],key:"matter"},
+ {ask:"How recently did this happen?",chips:["Today","Within the last week","Over a month ago"],key:"when"},
+ {ask:"How urgent is it for you right now?",chips:["Very urgent","Soon","Just exploring options"],key:"urgency"},
+ {ask:"Got it. What's your name?",key:"name"},
+ {ask:"And the best phone or email to reach you?",key:"contact"},
+];
+const log=document.getElementById('wlog'),win=document.getElementById('win'),wbox=document.getElementById('wbox');
+let step=-1,lead={captured:new Date().toISOString()};
+function bubble(text,who){const d=document.createElement('div');d.className='msg '+who;d.textContent=text;log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
+function chips(arr){const c=document.createElement('div');arr.forEach(t=>{const b=document.createElement('button');b.className='chip';b.textContent=t;b.onclick=()=>{win.value=t;send()};c.appendChild(b)});log.appendChild(c);log.scrollTop=log.scrollHeight;}
+document.getElementById('wbtn').onclick=()=>{wbox.classList.toggle('open');if(step===-1)next();};
+function next(){step++;if(step<STEPS.length){bubble(STEPS[step].ask,'bot');if(STEPS[step].chips)chips(STEPS[step].chips);}else finish();}
+function finish(){
+  const urgency=lead.urgency||'';
+  bubble("Thanks "+(lead.name||'')+", that's everything I need. Here's what I captured:\n\n• Matter: "+(lead.matter||'-')+"\n• When: "+(lead.when||'-')+"\n• Urgency: "+urgency+"\n• Name: "+(lead.name||'-')+"\n• Contact: "+(lead.contact||'-'),"bot");
+  bubble("A member of the "+FIRM+" team will reach out within one business day. If this is an emergency, call (555) 010-0110 now. (Demo: this lead is captured in this browser only.)","bot");
+  step=999;
+}
+function send(){
+  const t=win.value.trim();if(!t)return;
+  bubble(t,'you');win.value='';
+  if(step>=0&&step<STEPS.length){lead[STEPS[step].key]=t;setTimeout(next,450);}
+}
+</script>
+</body>
+</html>
